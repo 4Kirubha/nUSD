@@ -8,7 +8,6 @@ import {AggregatorV3Interface} from "../lib/chainlink-brownie-contracts/contract
 import {OracleLib} from "./libraries/OracleLib.sol";
 
 contract NUSDMain is ReentrancyGuard{
-
     error NUSDMain__NeedsGreaterThanZero();
     error NUSDMain__TransferFailed();
     error NUSDMain__BreaksHealthFactor(uint256 userHealthFactor);
@@ -46,6 +45,8 @@ contract NUSDMain is ReentrancyGuard{
         priceFeedAddress = _priceFeedAddress;
         iNusd = NUSD(nUsdAddress);
     }
+
+    //External Functions
 
     function depositEthAndMint() external payable{
         depositEth();
@@ -94,6 +95,8 @@ contract NUSDMain is ReentrancyGuard{
         }
     }
 
+    //Public Functions
+
     function mintNusd(uint256 amountNusdToMint) public moreThanZero(amountNusdToMint) nonReentrant returns(uint256){
         s_NUSDMinted[msg.sender] += amountNusdToMint;
         _revertIfHealthFactorIsBroken(msg.sender);
@@ -113,6 +116,8 @@ contract NUSDMain is ReentrancyGuard{
         s_ethDeposited[msg.sender] += msg.value;
         emit EthDeposited(msg.sender,msg.value);
     }
+
+    //Private & Internal Functions
 
     function _redeemEth(
         address from,
@@ -146,8 +151,7 @@ contract NUSDMain is ReentrancyGuard{
 
     function _healthFactor(address user) private view returns(uint256){
         (uint256 totalNusdMinted, uint256 ethValueInUsd)= _getAccountInformation(user);
-        uint256 ethAdjustedForThreshold = (ethValueInUsd * ADDITIONAL_FEED_PRECISION * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
-        return (ethAdjustedForThreshold * PRECISION/totalNusdMinted);
+        return _calculateHealthFactor(totalNusdMinted,ethValueInUsd);
     }
 
     function _revertIfHealthFactorIsBroken(address user) internal view{
@@ -160,6 +164,7 @@ contract NUSDMain is ReentrancyGuard{
     function _getUsdValue(uint256 amount) private view returns(uint256){
         AggregatorV3Interface priceFeed = AggregatorV3Interface(priceFeedAddress);
         (,int256 price,,,) = priceFeed.staleCheckLatestRoundData();
+        // The returned valur is in 8 decimals
         return (uint256(price) * amount)/PRECISION;
     }
 
@@ -169,7 +174,7 @@ contract NUSDMain is ReentrancyGuard{
         returns (uint256)
     {
         if (totalNusdMinted == 0) return type(uint256).max;
-        uint256 ethAdjustedForThreshold = (ethValueInUsd * LIQUIDATION_THRESHOLD) / 100;
+        uint256 ethAdjustedForThreshold = (ethValueInUsd * ADDITIONAL_FEED_PRECISION * LIQUIDATION_THRESHOLD) / 100;
         return (ethAdjustedForThreshold * 1e18) / totalNusdMinted;
     }
 
@@ -194,6 +199,7 @@ contract NUSDMain is ReentrancyGuard{
     function getEthAmountFromUsd(uint256 usdAmountInWei) public view returns(uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(priceFeedAddress);
         (,int256 price,,,) = priceFeed.latestRoundData();
+        // The returned valur is in 18 decimals
         return ((usdAmountInWei * PRECISION) / (uint256(price) * ADDITIONAL_FEED_PRECISION));
     }
 

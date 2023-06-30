@@ -8,10 +8,9 @@ import { NUSD_ADDRESS,NUSD_MAIN_ADDRESS,NUSD_ABI,NUSD_MAIN_ABI} from "../constan
 export default function Home(){
   const zero = BigNumber.from(0);
   const[walletConnected,setWalletConnected] = useState(false);
-  const[amountEth,setAmountEth] = useState(zero);
+  const[amountEth,setAmountEth] = useState("");
   const[totalNUSD,setTotalNUSD] = useState(zero);
   const[loading,setLoading] = useState(false);
-  const[isOwner,setIsOwner] = useState(false);
   const web3ModalRef = useRef();
 
     const getSignerOrProvider = async(needSigner = false) => {
@@ -35,7 +34,7 @@ export default function Home(){
       try{
         const signer = await getSignerOrProvider(true);
         const nusdContract = new Contract(NUSD_MAIN_ADDRESS,NUSD_MAIN_ABI,signer);
-        const tx = await nusdContract.depositEthAndMint({value: utils.parseEther(amountEth.toString())})
+        const tx = await nusdContract.depositEthAndMint({value: utils.parseEther(amountEth)})
         setLoading(true);
         await tx.wait();
         await totalSupply()
@@ -50,11 +49,12 @@ export default function Home(){
         const signer = await getSignerOrProvider(true);
         const nusdToken = new Contract(NUSD_ADDRESS,NUSD_ABI,signer);
         const nusdContract = new Contract(NUSD_MAIN_ADDRESS,NUSD_MAIN_ABI,signer);
-        const amountToMint = await nusdContract._calculateAmountToBurn(amountEth);
+        const amountNusd = BigNumber.from(amountEth);
+        const amountToMint = await nusdContract.getEthAmountFromUsd(amountNusd);
         const approveTx = await nusdToken.approve(NUSD_MAIN_ADDRESS,amountToMint);
         await approveTx.wait();
         setLoading(true);
-        const tx = await nusdContract.redeemEthForNusd(amountEth)
+        const tx = await nusdContract.redeemEthForNusd(amountNusd)
         await tx.wait();
         setLoading(false);
         await totalSupply();       
@@ -83,22 +83,6 @@ export default function Home(){
       }
     }
 
-    // async function getOwner(){
-    //   try{
-    //     const provider = await getSignerOrProvider();
-    //     const nftContract = new Contract(NUSD_MAIN_ADDRESS,NUSD_ABI,provider);
-    //     const _owner = await nftContract.owner();
-  
-    //     const signer = await getSignerOrProvider(true);
-    //     const address = await signer.getAddress();
-    //     if(address.toLowerCase() === _owner.toLowerCase()){
-    //       setIsOwner(true);
-    //     }
-    //   }catch(err){
-    //   console.error(err.message);
-    //   }
-    // }
-
     useEffect(() =>{
       if(!walletConnected){
         web3ModalRef.current = new Web3Modal({
@@ -121,13 +105,17 @@ export default function Home(){
       <div>
             <input
               type="number"
-              placeholder="Enter ETH Amount"
+              placeholder="Enter amount"
               className={styles.input}
-              onChange={(e) => setAmountEth(BigNumber.from((e.target.value).toString()))}>
+              onChange={(e) => setAmountEth((e.target.value).toString())}>
             </input>
-            <button className={styles.button} onClick={depositEth}>DEPOSIT</button>
-            <button className={styles.button} onClick={redeemEth}>REDEEM</button>
-            <div>{utils.formatEther(totalNUSD)}</div>
+            <div className={styles.description}>
+              <li>Enter ETH amount to Deposit & Mint</li>
+              <li>Enter Token amount to Redeem</li>
+            </div>
+            <button className={styles.button} onClick={depositEth}>Deposit & Mint</button>
+            <button className={styles.button} onClick={redeemEth}>Redeem</button>
+            <div className={styles.description}>{utils.formatEther(totalNUSD)} nUSD Tokens available.</div>
       </div>)
     }
 
@@ -140,7 +128,7 @@ export default function Home(){
         </Head>
         <div className={styles.main}>
           <div>
-            <h1 className={styles.title}></h1>
+            <h1 className={styles.title}>nUSD Stable Coins</h1>
             <div className={styles.description}>
             </div>
             <div className={styles.description}>
@@ -150,8 +138,7 @@ export default function Home(){
           <div>
           </div>
         </div>
-  
-        <footer className={styles.footer}>        </footer>
+        <footer className={styles.footer}></footer>
       </div>
     );
   }

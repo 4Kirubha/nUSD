@@ -1,5 +1,5 @@
-export const NUSD_MAIN_ADDRESS = "0x65c1aFDd0D8Fb4Ef51C57048F38891EAf64F039d"
-export const NUSD_ADDRESS = "0x29a10364867559381AEEF97E6FE9f26931c1ea8c"
+export const NUSD_MAIN_ADDRESS = "0x66107C624c68D331d0ba18e5F3ede8B6BF56C8cd"
+export const NUSD_ADDRESS = "0x6CA9f647B21F7BBe59d11825257f6D974E670760"
 
 export const NUSD_MAIN_ABI =  [
   {
@@ -97,25 +97,6 @@ export const NUSD_MAIN_ABI =  [
     ],
     "name": "EthRedeemed",
     "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "amountEth",
-        "type": "uint256"
-      }
-    ],
-    "name": "_calculateAmountToBurn",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
   },
   {
     "inputs": [
@@ -458,7 +439,7 @@ export const NUSD_MAIN_ABI =  [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "amountEth",
+        "name": "_amountNusdToBurn",
         "type": "uint256"
       }
     ],
@@ -469,7 +450,7 @@ export const NUSD_MAIN_ABI =  [
   }
 ]
 
-export const NUSD_ABI = [
+export const NUSD_ABI =  [
   {
     "inputs": [],
     "stateMutability": "nonpayable",

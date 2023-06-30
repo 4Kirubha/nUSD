@@ -122,8 +122,8 @@ export default function Home(){
    return (
       <div>
         <Head>
-          <title>Krypto Koin</title>
-          <meta name="description" content="Whitelist-Dapp" />
+          <title>nUSD</title>
+          <meta name="description" content="StableCoin" />
           <link rel="icon" href="/favicon.ico" />
         </Head>
         <div className={styles.main}>
